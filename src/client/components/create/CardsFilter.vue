@@ -2,6 +2,9 @@
     <div class="cards-filter">
         <h2 v-i18n>{{ listTitle }}</h2>
         <div style="padding-bottom: 10px;">
+          <Button title="Clear list" size="big" @click="clearList"/>
+        </div>
+        <div style="padding-bottom: 10px;">
           <Button title="Copy list to clipboard" size="big" @click="copyToClipboard"/>
         </div>
         <div style="padding-bottom: 10px;">
@@ -9,6 +12,8 @@
         </div>
         <div class="cards-filter-results-cont" v-if="selectedCardNames.length">
             <div class="cards-filter-result" v-for="cardName in selectedCardNames" v-bind:key="cardName">
+                <Button v-if="listType==='white'" size="small" type="plus" @click="moveUp(cardName)" />
+                <Button v-if="listType==='white'" size="small" type="minus" @click="moveDown(cardName)" />
                 <label>{{ cardName }}<i class="create-game-expansion-icon expansion-icon-prelude" title="This card is prelude" v-if="isPrelude(cardName)"></i></label>
                 <Button size="small" type="close" @click="removeCard(cardName)" />
             </div>
@@ -68,13 +73,48 @@ export default Vue.extend({
     isPrelude(cardName: CardName) {
       return getCard(cardName)?.cardType === CardType.PRELUDE;
     },
+    updateArray() {
+      const tempCard = this.selectedCardNames.pop();
+      this.addCard(tempCard as CardName);
+    },
+    moveUp(card: CardName) {
+      const index = this.selectedCardNames.indexOf(card);
+      if (index === 0) {
+        return;
+      } else {
+        const tempCard: CardName = this.selectedCardNames[index-1];
+        this.selectedCardNames[index-1] = card;
+        this.selectedCardNames[index] = tempCard;
+      }
+      this.updateArray();
+    },
+    moveDown(card: CardName) {
+      const index = this.selectedCardNames.indexOf(card);
+      if (index === this.selectedCardNames.length-1) {
+        return;
+      } else {
+        const tempCard: CardName = this.selectedCardNames[index+1];
+        this.selectedCardNames[index+1] = card;
+        this.selectedCardNames[index] = tempCard;
+      }
+      this.updateArray();
+    },
     removeCard(cardNameToRemove: CardName) {
       this.selectedCardNames = this.selectedCardNames.filter((curCardName) => curCardName !== cardNameToRemove);
+      if (this.listType === 'black') {
+        this.selectedCardNames.sort();
+      }
     },
     addCard(cardNameToAdd: CardName) {
       if (this.selectedCardNames.includes(cardNameToAdd)) return;
       this.selectedCardNames.push(cardNameToAdd);
       this.searchTerm = '';
+      if (this.listType === 'black') {
+        this.selectedCardNames.sort();
+      }
+    },
+    clearList() {
+      this.selectedCardNames = [];
     },
     copyToClipboard() {
       navigator.clipboard.writeText(this.selectedCardNames.toString());
