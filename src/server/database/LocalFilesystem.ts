@@ -1,5 +1,5 @@
 import {GameIdLedger, IDatabase} from './IDatabase';
-import {Game, Score} from '../Game';
+import {Game} from '../Game';
 import {GameOptions} from '../GameOptions';
 import {GameId, isGameId, PlayerId, SpectatorId} from '../../common/Types';
 import {SerializedGame} from '../SerializedGame';
@@ -130,7 +130,7 @@ export class LocalFilesystem implements IDatabase {
     throw new Error('Does not work');
   }
 
-  saveGameResults(_gameId: GameId, _players: number, _generations: number, _gameOptions: GameOptions, _scores: Array<Score>): void {
+  saveGameResults(_gameId: GameId, _players: number, _generations: number, _gameOptions: GameOptions, _corporation: string, _name: string, _TR: number, _milestones: number, _awards: number, _greenery: number, _city: number, _escapeVelocity: number, _moonColonies: number, _moonMines: number, _moonRoads: number, _planetaryTracks: number, _cardVP: number, _VP: number): void {
     // Not implemented
   }
 

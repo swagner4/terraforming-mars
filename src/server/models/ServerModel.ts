@@ -435,6 +435,7 @@ export class Server {
       titaniumValue: player.getTitaniumValue(),
       tradesThisGeneration: player.colonies.tradesThisGeneration,
       victoryPointsBreakdown: player.getVictoryPoints(),
+      victoryPointsBreakdownHistory: player.getVictoryPointsHistory(),
       victoryPointsByGeneration: player.victoryPointsByGeneration,
     };
   }
@@ -544,6 +545,8 @@ export class Server {
       aresExtension: options.aresExtension,
       boardName: options.boardName,
       bannedCards: options.bannedCards,
+      whitelistCards: options.whitelistCards,
+      shuffleWhitelistCards: options.shuffleWhitelistCards,
       coloniesExtension: options.coloniesExtension,
       communityCardsOption: options.communityCardsOption,
       corporateEra: options.corporateEra,

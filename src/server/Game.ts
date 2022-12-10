@@ -68,10 +68,12 @@ import {DEFAULT_GAME_OPTIONS, GameOptions} from './GameOptions';
 import {TheNewSpaceRace} from './cards/pathfinders/TheNewSpaceRace';
 import {CorporationDeck, PreludeDeck, ProjectDeck} from './cards/Deck';
 import {Logger} from './logs/Logger';
+import {IVictoryPointsBreakdown} from '../common/game/IVictoryPointsBreakdown';
 
 export interface Score {
   corporation: String;
   playerScore: number;
+  playerName: String;
 }
 export class Game implements Logger {
   // Game-level data
@@ -190,14 +192,21 @@ export class Game implements Logger {
     const board = GameSetup.newBoard(gameOptions, rng);
     const gameCards = new GameCards(gameOptions);
 
-    const projectDeck = new ProjectDeck(gameCards.getProjectCards(), [], rng);
-    projectDeck.shuffle();
+    const projectDeck = new ProjectDeck(gameCards.getProjectCards(true), [], rng);
+    if (gameOptions.shuffleWhitelistCards) {
+      projectDeck.shuffle();
+    }
+    const projectDeckNotWhitelist = new ProjectDeck(gameCards.getProjectCards(false), [], rng);
+    projectDeckNotWhitelist.shuffle();
+    projectDeck.addCardsToDeck(projectDeckNotWhitelist.drawPile);
 
     const corporationDeck = new CorporationDeck(gameCards.getCorporationCards(), [], rng);
     corporationDeck.shuffle(gameOptions.customCorporationsList);
 
     const preludeDeck = new PreludeDeck(gameCards.getPreludeCards(), [], rng);
-    preludeDeck.shuffle(gameOptions.customPreludes);
+    if (gameOptions.shuffleWhitelistCards) {
+      preludeDeck.shuffle(gameOptions.customPreludes);
+    }
 
     const activePlayer = firstPlayer.id;
 
@@ -721,6 +730,7 @@ export class Game implements Logger {
 
   private goToDraftOrResearch() {
     this.updateVPbyGeneration();
+    this.saveResults();
     this.generation++;
     this.log('Generation ${0}', (b) => b.forNewGeneration().number(this.generation));
     this.incrementFirstPlayer();
@@ -946,20 +956,26 @@ export class Game implements Logger {
       this.log('This game id was ${0}', (b) => b.rawString(id));
     }
 
-    const scores: Array<Score> = [];
-    this.players.forEach((player) => {
-      const corpname = player.corporations.length > 0 ? player.corporations[0].name : '';
-      const vpb = player.getVictoryPoints();
-      scores.push({corporation: corpname, playerScore: vpb.total});
-    });
+    this.saveResults();
 
-    Database.getInstance().saveGameResults(this.id, this.players.length, this.generation, this.gameOptions, scores);
     this.phase = Phase.END;
-    Database.getInstance().saveGame(this).then(() => {
-      GameLoader.getInstance().mark(this.id);
-      return Database.getInstance().cleanGame(this.id);
-    }).catch((err) => {
-      console.error(err);
+  }
+
+  private saveResults(): void {
+    this.players.forEach((player) => {
+      let corponames: string = '';
+      if (player.corporations !== undefined) {
+        corponames = player.corporations.map((e) => {
+          return e.name;
+        }).join(', ');
+      }
+      const pts: IVictoryPointsBreakdown = player.getVictoryPoints();
+
+      const index = this.players.map(function(p) {
+        return p.id;
+      }).indexOf(player.id);
+      this.players[index].VPHist[this.generation] = this.players[index].getVictoryPoints();
+      Database.getInstance().saveGameResults(this.id, this.players.length, this.generation, this.gameOptions, corponames, player.name, pts.terraformRating, pts.milestones, pts.awards, pts.greenery, pts.city, pts.escapeVelocity, pts.moonHabitats, pts.moonMines, pts.moonRoads, pts.planetaryTracks, pts.victoryPoints, pts.total);
     });
   }
 
@@ -1480,14 +1496,14 @@ export class Game implements Logger {
 
   public discardForCost(cardCount: 1 | 2, toPlace: TileType) {
     if (cardCount === 1) {
-      const card = this.projectDeck.draw(this);
+      const card = this.projectDeck.draw(this, 'bottom');
       this.projectDeck.discard(card);
       this.log('Drew and discarded ${0} (cost ${1}) to place a ${2}', (b) => b.card(card).number(card.cost).tileType(toPlace));
       return card.cost;
     } else {
-      const card1 = this.projectDeck.draw(this);
+      const card1 = this.projectDeck.draw(this, 'bottom');
       this.projectDeck.discard(card1);
-      const card2 = this.projectDeck.draw(this);
+      const card2 = this.projectDeck.draw(this, 'bottom');
       this.projectDeck.discard(card2);
       this.log('Drew and discarded ${0} (cost ${1}) and ${2} (cost ${3}) to place a ${4}', (b) => b.card(card1).number(card1.cost).card(card2).number(card2.cost).tileType(toPlace));
       return card1.cost + card2.cost;

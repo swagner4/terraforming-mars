@@ -3,6 +3,7 @@ import {CardName} from '../common/cards/CardName';
 import {Color} from '../common/Color';
 import {SerializedCard} from './SerializedCard';
 import {SerializedTimer} from '../common/SerializedTimer';
+import {IVictoryPointsBreakdown} from '../common/game/IVictoryPointsBreakdown';
 
 interface DeprecatedFields {
     corporationCard?: SerializedCard | undefined; // TODO(kberg): remove after 2022-09-01
@@ -67,4 +68,5 @@ export interface SerializedPlayer extends DeprecatedFields{
     tradesThisTurn: number;
     turmoilPolicyActionUsed: boolean;
     victoryPointsByGeneration: Array<number>;
+    VPHist: { [generation: number]: IVictoryPointsBreakdown }
 }

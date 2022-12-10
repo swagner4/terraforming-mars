@@ -66,6 +66,7 @@ export type PublicPlayerModel = {
   titaniumValue: number;
   tradesThisGeneration: number;
   victoryPointsBreakdown: IVictoryPointsBreakdown;
+  victoryPointsBreakdownHistory: {[generation: number]: IVictoryPointsBreakdown};
   victoryPointsByGeneration: Array<number>
 }
 

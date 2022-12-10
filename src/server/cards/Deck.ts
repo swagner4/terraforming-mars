@@ -32,6 +32,10 @@ export class Deck<T extends ICard> {
     this.random = random;
   }
 
+  public addCardsToDeck(newCards: Array<T>) {
+    this.drawPile = this.drawPile.concat(newCards);
+  }
+
   public shuffle(cardsOnTop: Array<CardName> = []) {
     const copy = [...this.drawPile, ...this.discardPile];
     this.drawPile.splice(0, this.drawPile.length);
@@ -58,7 +62,7 @@ export class Deck<T extends ICard> {
   }
 
   public draw(logger: Logger, source: 'top' | 'bottom' = 'top'): T {
-    const card = source === 'top' ? this.drawPile.pop() : this.drawPile.shift();
+    const card = source === 'top' ? this.drawPile.shift() : this.drawPile.pop();
 
     if (card === undefined) {
       throw new Error(`Unexpected empty ${this.type} deck`);

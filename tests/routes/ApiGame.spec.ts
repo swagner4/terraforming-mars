@@ -54,6 +54,8 @@ describe('ApiGame', () => {
           'aresExtension': false,
           'boardName': 'tharsis',
           'bannedCards': [],
+          'whitelistCards': [],
+          'shuffleWhitelistCards': true,
           'coloniesExtension': false,
           'communityCardsOption': false,
           'corporateEra': true,

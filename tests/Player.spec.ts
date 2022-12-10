@@ -24,6 +24,7 @@ import {PartyName} from '../src/common/turmoil/PartyName';
 import {InputResponse} from '../src/common/inputs/InputResponse';
 import {SelectPlayer} from '../src/server/inputs/SelectPlayer';
 import {SelectAmount} from '../src/server/inputs/SelectAmount';
+import {IVictoryPointsBreakdown} from '@/common/game/IVictoryPointsBreakdown';
 
 describe('Player', function() {
   it('should initialize with right defaults', function() {
@@ -242,6 +243,32 @@ describe('Player', function() {
       colonyTradeDiscount: 102,
       colonyVictoryPoints: 104,
       turmoilPolicyActionUsed: false,
+      VPHist: {
+        1: {
+          terraformRating: 1,
+          milestones: 2,
+          awards: 3,
+          greenery: 4,
+          city: 5,
+          victoryPoints: 6,
+          total: 7,
+          detailsCards: [],
+          detailsMilestones: [],
+          detailsAwards: [],
+        } as unknown as IVictoryPointsBreakdown,
+        2: {
+          terraformRating: 2,
+          milestones: 3,
+          awards: 4,
+          greenery: 5,
+          city: 6,
+          victoryPoints: 7,
+          total: 8,
+          detailsCards: [],
+          detailsMilestones: [],
+          detailsAwards: [],
+        } as unknown as IVictoryPointsBreakdown,
+      } as unknown as {[generation: number]: IVictoryPointsBreakdown},
       politicalAgendasActionUsedCount: 0,
       hasTurmoilScienceTagBonus: false,
       oceanBonus: 86,

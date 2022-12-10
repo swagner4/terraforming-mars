@@ -1,5 +1,5 @@
 import {GameIdLedger, IDatabase} from './IDatabase';
-import {Game, Score} from '../Game';
+import {Game} from '../Game';
 import {GameOptions} from '../GameOptions';
 import {GameId, PlayerId, SpectatorId} from '../../common/Types';
 import {SerializedGame} from '../SerializedGame';
@@ -30,7 +30,7 @@ export class SQLite implements IDatabase {
   public async initialize(): Promise<void> {
     await this.asyncRun('CREATE TABLE IF NOT EXISTS games(game_id varchar, players integer, save_id integer, game text, status text default \'running\', created_time timestamp default (strftime(\'%s\', \'now\')), PRIMARY KEY (game_id, save_id))');
     await this.asyncRun('CREATE TABLE IF NOT EXISTS participants(game_id varchar, participant varchar, PRIMARY KEY (game_id, participant))');
-    await this.asyncRun('CREATE TABLE IF NOT EXISTS game_results(game_id varchar not null, seed_game_id varchar, players integer, generations integer, game_options text, scores text, PRIMARY KEY (game_id))');
+    await this.asyncRun('CREATE TABLE IF NOT EXISTS game_results(game_id varchar not null, seed_game_id varchar, players integer, generation integer, game_options text, corporation varchar, name varchar, tr integer, milestones integer, awards integer, greenery integer, city integer, escapevelocity integer, moonHabitats integer, moonmines integer, moonroads integer, planetarytracks integer, cardvp integer, vp integer, PRIMARY KEY (game_id, corporation, generation))');
     await this.asyncRun(
       `CREATE TABLE IF NOT EXISTS purges(
         game_id varchar not null,
@@ -68,10 +68,10 @@ export class SQLite implements IDatabase {
     return json;
   }
 
-  saveGameResults(game_id: GameId, players: number, generations: number, gameOptions: GameOptions, scores: Array<Score>): void {
+  saveGameResults(game_id: GameId, players: number, generations: number, gameOptions: GameOptions, corporation: string, name: string, TR: number, milestones: number, awards: number, greenery: number, city: number, escapeVelocity: number, moonHabitats: number, moonMines: number, moonRoads: number, planetaryTracks: number, cardVP: number, VP: number): void {
     this.db.run(
-      'INSERT INTO game_results (game_id, seed_game_id, players, generations, game_options, scores) VALUES($1, $2, $3, $4, $5, $6)',
-      [game_id, gameOptions.clonedGamedId, players, generations, JSON.stringify(gameOptions), JSON.stringify(scores)], (err) => {
+      'INSERT INTO game_results (game_id, seed_game_id, players, generation, game_options, corporation, name, TR, milestones, awards, greenery, city, escapeVelocity, moonHabitats, moonMines, moonRoads, planetaryTracks, cardVP, VP) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)',
+      [game_id, gameOptions.clonedGamedId, players, generations, JSON.stringify(gameOptions), corporation, name, TR, milestones, awards, greenery, city, escapeVelocity, moonHabitats, moonMines, moonRoads, planetaryTracks, cardVP, VP], (err) => {
         if (err) {
           console.error('SQLite:saveGameResults', err);
           throw err;

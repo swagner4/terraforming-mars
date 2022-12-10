@@ -92,6 +92,7 @@ export class Player {
   private terraformRating: number = 20;
   public hasIncreasedTerraformRatingThisGeneration: boolean = false;
   public terraformRatingAtGenerationStart: number = 20;
+  public VPHist: { [generation: number]: IVictoryPointsBreakdown } = {};
 
   // Resources
   public megaCredits: number = 0;
@@ -530,6 +531,10 @@ export class Player {
     return victoryPointsBreakdown.points;
   }
 
+  public getVictoryPointsHistory(): {[generation: number]: IVictoryPointsBreakdown} {
+    return this.VPHist;
+  }
+
   public cardIsInEffect(cardName: CardName): boolean {
     return this.playedCards.some(
       (playedCard) => playedCard.name === cardName);
@@ -863,7 +868,7 @@ export class Player {
 
   public dealForDraft(quantity: number, cards: Array<IProjectCard>): void {
     for (let i = 0; i < quantity; i++) {
-      cards.push(this.game.projectDeck.draw(this.game, 'bottom'));
+      cards.push(this.game.projectDeck.draw(this.game));
     }
   }
 
@@ -1926,6 +1931,7 @@ export class Player {
       terraformRating: this.terraformRating,
       hasIncreasedTerraformRatingThisGeneration: this.hasIncreasedTerraformRatingThisGeneration,
       terraformRatingAtGenerationStart: this.terraformRatingAtGenerationStart,
+      VPHist: this.VPHist,
       // Resources
       megaCredits: this.megaCredits,
       megaCreditProduction: this.production.megacredits,
@@ -2038,6 +2044,7 @@ export class Player {
     player.steelValue = d.steelValue;
     player.terraformRating = d.terraformRating;
     player.terraformRatingAtGenerationStart = d.terraformRatingAtGenerationStart;
+    player.VPHist = d.VPHist;
     player.titanium = d.titanium;
     player.titaniumValue = d.titaniumValue;
     player.totalDelegatesPlaced = d.totalDelegatesPlaced;

@@ -96,7 +96,7 @@ async function start() {
   }
   Database.getInstance().purgeUnfinishedGames();
 
-  const port = process.env.PORT || 8080;
+  const port = process.env.PORT || 8003;
   console.log(`Starting ${raw_settings.head}, built at ${raw_settings.builtAt}`);
   console.log(`Starting server on port ${port}`);
 

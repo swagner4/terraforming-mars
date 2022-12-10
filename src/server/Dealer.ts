@@ -25,10 +25,18 @@ export class Dealer {
   public static newInstance(gameCards: GameCards, random: Random = UnseededRandom.INSTANCE): Dealer {
     const dealer = new Dealer(random);
 
-    dealer.deck = Dealer.shuffle(gameCards.getProjectCards(), random);
+    const shuffleWhitelistCards = gameCards.getGameOptions().shuffleWhitelistCards;
+
+    let projectWhite = gameCards.getProjectCards(true);
+
+    if (shuffleWhitelistCards) {
+      projectWhite = Dealer.shuffle(projectWhite);
+    }
+
+    dealer.deck = projectWhite.concat(Dealer.shuffle(gameCards.getProjectCards(false), random));
+    dealer.preludeDeck = gameCards.getPreludeCards();
     dealer.corporationCards = gameCards.getCorporationCards();
 
-    dealer.preludeDeck = Dealer.shuffle(gameCards.getPreludeCards(), random);
     // Special-case prelude deck: both The New Space Race and By-Election cannot
     // be used in the same game.
     const indexes = INCOMPATIBLE_PRELUDES.map((name) => dealer.preludeDeck.findIndex((c) => c.name === name));
@@ -38,6 +46,7 @@ export class Dealer {
       const indexToRemove = indexes[target];
       dealer.preludeDeck.splice(indexToRemove, 1);
     }
+
     return dealer;
   }
 
@@ -52,12 +61,12 @@ export class Dealer {
   public discard(card: IProjectCard): void {
     this.discarded.push(card);
   }
-  public dealCard(logger: Logger, isResearchPhase: boolean = false): IProjectCard {
+  public dealCard(logger: Logger, randomCard: boolean = false): IProjectCard {
     let result: IProjectCard | undefined;
-    if (isResearchPhase) {
-      result = this.deck.shift();
-    } else {
+    if (randomCard) {
       result = this.deck.pop();
+    } else {
+      result = this.deck.shift();
     }
 
     if (result === undefined) {
@@ -99,7 +108,7 @@ export class Dealer {
 
   // Prelude deck does not need discard and reshuffle mecanisms
   public dealPreludeCard(): IProjectCard {
-    const result: IProjectCard | undefined = this.preludeDeck.pop();
+    const result: IProjectCard | undefined = this.preludeDeck.shift();
     if (result === undefined) {
       throw new Error('Unexpected empty prelude deck');
     }

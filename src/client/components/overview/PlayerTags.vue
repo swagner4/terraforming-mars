@@ -38,6 +38,7 @@ import PointsPerTag from '@/client/components/overview/PointsPerTag.vue';
 import {PartyName} from '@/common/turmoil/PartyName';
 import {Shared} from '@/client/components/overview/Shared';
 import {getCard} from '@/client/cards/ClientCardManifest';
+import {isSpectatorId} from '@/common/Types';
 
 type InterfaceTagsType = Tag | SpecialTags | 'all' | 'separator';
 type TagDetail = {
@@ -175,7 +176,7 @@ export default Vue.extend({
       return this.player.cardsInHandNbr ?? 0;
     },
     hideVpCount(): boolean {
-      return !this.playerView.game.gameOptions.showOtherPlayersVP && !this.isThisPlayer;
+      return (!this.playerView.game.gameOptions.showOtherPlayersVP && !this.isThisPlayer) && !isSpectatorId(this.playerView.id);
     },
     isEscapeVelocityOn(): boolean {
       return this.playerView.game.gameOptions.escapeVelocityMode;

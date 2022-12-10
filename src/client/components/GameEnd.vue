@@ -157,6 +157,9 @@
             <log-panel :color="color" :generation="game.generation" v-if="viewModel.id !== undefined" :id="viewModel.id" :lastSoloGeneration="game.lastSoloGeneration" :players="players"></log-panel>
             <a :href="downloadLogUrl" target="_blank" v-i18n>Download game log</a>
           </div>
+          <div class="game_end_block--graph game-end-column">
+            <graph-panel :players="players"></graph-panel>
+          </div>
         </div>
       </div>
   </div>
@@ -173,6 +176,7 @@ import Board from '@/client/components/Board.vue';
 import MoonBoard from '@/client/components/moon/MoonBoard.vue';
 import PlanetaryTracks from '@/client/components/pathfinders/PlanetaryTracks.vue';
 import LogPanel from '@/client/components/LogPanel.vue';
+import GraphPanel from '@/client/components/GraphPanel.vue';
 import Button from '@/client/components/common/Button.vue';
 import VictoryPointChart from '@/client/components/gameend/VictoryPointChart.vue';
 import {playerColorClass} from '@/common/utils/utils';
@@ -228,6 +232,7 @@ export default Vue.extend({
   components: {
     'board': Board,
     'log-panel': LogPanel,
+    'graph-panel': GraphPanel,
     Button,
     MoonBoard,
     PlanetaryTracks,

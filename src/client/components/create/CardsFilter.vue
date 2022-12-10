@@ -1,6 +1,6 @@
 <template>
     <div class="cards-filter">
-        <h2 v-i18n>Cards to exclude from the game</h2>
+        <h2 v-i18n>{{ listTitle }}</h2>
         <div class="cards-filter-results-cont" v-if="selectedCardNames.length">
             <div class="cards-filter-result" v-for="cardName in selectedCardNames" v-bind:key="cardName">
                 <label>{{ cardName }}<i class="create-game-expansion-icon expansion-icon-prelude" title="This card is prelude" v-if="isPrelude(cardName)"></i></label>
@@ -46,7 +46,10 @@ interface CardsFilterModel {
 
 export default Vue.extend({
   name: 'CardsFilter',
-  props: {},
+  props: {
+    listTitle: String,
+    listType: String,
+  },
   data(): CardsFilterModel {
     return {
       selectedCardNames: [],
@@ -88,7 +91,7 @@ export default Vue.extend({
         return;
       }
       const newCardNames = allItems.filter(
-        (candidate: CardName) => ! this.selectedCardNames.includes(candidate) && candidate.toLowerCase().indexOf(value.toLowerCase()) !== -1,
+        (candidate: CardName) => ! this.selectedCardNames.includes(candidate) && candidate.toLowerCase().indexOf(value.toLowerCase()) !== -1 && !((this.listType === 'white') && this.isPrelude(candidate)),
       ).sort();
       this.foundCardNames = newCardNames.slice(0, 5);
     },

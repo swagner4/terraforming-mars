@@ -58,6 +58,10 @@ export class GameCards {
     this.moduleManifests = manifests.filter((a) => a[0]).map((a) => a[1]);
   }
 
+  public getGameOptions() {
+    return this.gameOptions;
+  }
+
   private static isCompatibleWith(cf: ICardFactory<ICard>, gameOptions: GameOptions): boolean {
     if (cf.compatibility === undefined) {
       return true;
@@ -89,19 +93,19 @@ export class GameCards {
       .map((factory) => new factory.Factory());
   }
 
-  public getProjectCards() {
-    return this.getCards<IProjectCard>('projectCards');
+  public getProjectCards(isWhitelist: boolean) {
+    return this.getCards<IProjectCard>('projectCards', isWhitelist);
   }
   public getStandardProjects() {
-    return this.getCards<IStandardProjectCard>('standardProjects');
+    return this.getCards<IStandardProjectCard>('standardProjects', false);
   }
   public getCorporationCards(): Array<ICorporationCard> {
-    const cards = this.getCards<ICorporationCard>('corporationCards')
+    const cards = this.getCards<ICorporationCard>('corporationCards', false)
       .filter((card) => card.name !== CardName.BEGINNER_CORPORATION);
     return this.addCustomCards(cards, this.gameOptions.customCorporationsList);
   }
   public getPreludeCards() {
-    let preludes = this.getCards<IPreludeCard>('preludeCards');
+    let preludes = this.getCards<IPreludeCard>('preludeCards', false);
     // https://github.com/terraforming-mars/terraforming-mars/issues/2833
     // Make Valley Trust playable even when Preludes is out of the game
     // by preparing a deck of preludes.
@@ -134,7 +138,7 @@ export class GameCards {
     return cards;
   }
 
-  private getCards<T extends ICard>(cardManifestName: keyof ModuleManifest) : Array<T> {
+  private getCards<T extends ICard>(cardManifestName: keyof ModuleManifest, isWhitelist: boolean) : Array<T> {
     let cards: Array<T> = [];
     for (const moduleManifest of this.moduleManifests) {
       // a bit of a hack, but since this is a private API, this is reasonable.
@@ -142,8 +146,20 @@ export class GameCards {
       cards.push(...this.instantiate(cardManifest));
     }
 
-    cards = this.filterBannedCards(cards);
     cards = this.filterReplacedCards(cards);
+    if (isWhitelist) {
+      const newCards: Array<T> = [];
+      for (const card of this.gameOptions.whitelistCards) {
+        const whitelistCard = cards.find((c) => c.name === card);
+        if (whitelistCard !== undefined) {
+          newCards.push(whitelistCard);
+        }
+      }
+      cards = newCards;
+    } else {
+      cards = this.filterBannedCards(cards);
+      cards = this.filterWhitelistCards(cards);
+    }
     return cards;
   }
 
@@ -151,6 +167,13 @@ export class GameCards {
   private filterBannedCards<T extends ICard>(cards: Array<T>): Array<T> {
     return cards.filter((card) => {
       return this.gameOptions.bannedCards.includes(card.name) !== true;
+    });
+  }
+
+  /* Remove cards on the whitelist by choice in game options */
+  private filterWhitelistCards<T extends ICard>(cards: Array<T>): Array<T> {
+    return cards.filter((card) => {
+      return this.gameOptions.whitelistCards.includes(card.name) !== true;
     });
   }
 

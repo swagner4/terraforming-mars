@@ -249,6 +249,18 @@
                                 <span v-i18n>Exclude some cards</span>
                             </label>
 
+                            <input type="checkbox" v-model="showWhitelistCards" id="whitelistCards-checkbox">
+                            <label for="whitelistCards-checkbox">
+                                <span v-i18n>Include some cards</span>
+                            </label>
+
+                            <template v-if="showWhitelistCards">
+                              <input type="checkbox" v-model="shuffleWhitelistCards" id="shuffleWhitelistCards-checkbox">
+                              <label for="shuffleWhitelistCards-checkbox">
+                                  <span v-i18n>Shuffle Whitelist Cards</span>
+                              </label>
+                            </template>
+
                             <template v-if="colonies">
                                 <input type="checkbox" v-model="showColoniesList" id="customColonies-checkbox">
                                 <label for="customColonies-checkbox">
@@ -445,6 +457,17 @@
               <CardsFilter
                   ref="cardsFilter"
                   v-on:cards-list-changed="updateBannedCards"
+                  listTitle="Cards to exclude from the game"
+                  listType="black"
+              ></CardsFilter>
+            </div>
+
+            <div class="create-game--block" v-if="showWhitelistCards">
+              <CardsFilter
+                  ref="cardsFilter"
+                  v-on:cards-list-changed="updateWhitelistCards"
+                  listTitle="Cards at the top of the deck"
+                  listType="white"
               ></CardsFilter>
             </div>
           <preferences-icon></preferences-icon>
@@ -497,10 +520,13 @@ export interface CreateGameModel {
     colonies: boolean;
     turmoil: boolean;
     bannedCards: Array<CardName>;
+    whitelistCards: Array<CardName>;
     customColonies: Array<ColonyName>;
     customCorporations: Array<CardName>;
     customPreludes: Array<CardName>;
     showBannedCards: boolean;
+    showWhitelistCards: boolean;
+    shuffleWhitelistCards: boolean;
     showCorporationList: boolean;
     showColoniesList: boolean;
     showPreludesList: boolean;
@@ -576,11 +602,14 @@ export default (Vue as WithRefs<Refs>).extend({
       showCorporationList: false,
       showPreludesList: false,
       showBannedCards: false,
+      showWhitelistCards: false,
+      shuffleWhitelistCards: true,
       turmoil: false,
       customColonies: [],
       customCorporations: [],
       customPreludes: [],
       bannedCards: [],
+      whitelistCards: [],
       board: BoardName.THARSIS,
       boards: [
         BoardName.THARSIS,
@@ -692,6 +721,7 @@ export default (Vue as WithRefs<Refs>).extend({
             const customCorporations = results[json_constants.CUSTOM_CORPORATIONS] || results[json_constants.OLD_CUSTOM_CORPORATIONS] || [];
             const customColonies = results[json_constants.CUSTOM_COLONIES] || results[json_constants.OLD_CUSTOM_COLONIES] || [];
             const bannedCards = results[json_constants.BANNED_CARDS] || results[json_constants.OLD_BANNED_CARDS] || [];
+            const whitelistCards = results[json_constants.WHITELIST_CARDS] || [];
             const customPreludes = results[json_constants.CUSTOM_PRELUDES] || [];
 
             const players = results['players'];
@@ -699,6 +729,7 @@ export default (Vue as WithRefs<Refs>).extend({
             component.showCorporationList = customCorporations.length > 0;
             component.showColoniesList = customColonies.length > 0;
             component.showBannedCards = bannedCards.length > 0;
+            component.showWhitelistCards = whitelistCards.length > 0;
             component.showPreludesList = customPreludes.length > 0;
 
             // Capture the solar phase option since several of the other results will change
@@ -713,6 +744,7 @@ export default (Vue as WithRefs<Refs>).extend({
               json_constants.CUSTOM_PRELUDES,
               json_constants.BANNED_CARDS,
               json_constants.OLD_BANNED_CARDS,
+              json_constants.WHITELIST_CARDS,
               'players',
               'solarPhaseOption',
               'constants'];
@@ -735,6 +767,7 @@ export default (Vue as WithRefs<Refs>).extend({
                 if (component.showCorporationList) refs.corporationsFilter.selectedCorporations = customCorporations;
                 if (component.showPreludesList) refs.preludesFilter.updatePreludes(customPreludes);
                 if (component.showBannedCards) refs.cardsFilter.selectedCardNames = bannedCards;
+                if (component.showWhitelistCards) refs.cardsFilter.selectedCardNames = whitelistCards;
                 if (!component.seededGame) component.seed = Math.random();
                 // set to alter after any watched properties
                 component.solarPhaseOption = Boolean(capturedSolarPhaseOption);
@@ -772,6 +805,9 @@ export default (Vue as WithRefs<Refs>).extend({
     },
     updateBannedCards(bannedCards: Array<CardName>) {
       this.bannedCards = bannedCards;
+    },
+    updateWhitelistCards(whitelistCards: Array<CardName>) {
+      this.whitelistCards = whitelistCards;
     },
     updatecustomColonies(customColonies: Array<ColonyName>) {
       this.customColonies = customColonies;
@@ -948,6 +984,8 @@ export default (Vue as WithRefs<Refs>).extend({
       const customCorporations = component.customCorporations;
       const customPreludes = component.customPreludes;
       const bannedCards = component.bannedCards;
+      const whitelistCards = component.whitelistCards;
+      const shuffleWhitelistCards = component.shuffleWhitelistCards;
       const board = component.board;
       const seed = component.seed;
       const promoCardsOption = component.promoCardsOption;
@@ -1060,6 +1098,12 @@ export default (Vue as WithRefs<Refs>).extend({
         customPreludes.length = 0;
       }
 
+      // Check custom project cards
+      if (bannedCards.some((c) => whitelistCards.includes(c))) {
+        window.alert('Can not have any cards on both the include and exclude lists');
+        return;
+      }
+
       // Clone game checks
       if (component.clonedGameId !== undefined && component.seededGame) {
         const gameData = await fetch('/api/cloneablegame?id=' + component.clonedGameId)
@@ -1103,6 +1147,8 @@ export default (Vue as WithRefs<Refs>).extend({
         customColoniesList: customColonies,
         customPreludes,
         bannedCards,
+        whitelistCards,
+        shuffleWhitelistCards,
         board,
         seed,
         solarPhaseOption,

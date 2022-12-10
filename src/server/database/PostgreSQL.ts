@@ -1,5 +1,5 @@
 import {IDatabase} from './IDatabase';
-import {Game, Score} from '../Game';
+import {Game} from '../Game';
 import {GameOptions} from '../GameOptions';
 import {GameId, PlayerId, SpectatorId} from '../../common/Types';
 import {SerializedGame} from '../SerializedGame';
@@ -18,35 +18,32 @@ export class PostgreSQL implements IDatabase {
     saveConflictNormalCount: 0,
   };
 
-  constructor(
-    config: ClientConfig = {
+  constructor() {
+    const config: ClientConfig = {
       connectionString: process.env.POSTGRES_HOST,
-    }) {
-    if (config.connectionString !== undefined && config.connectionString.startsWith('postgres')) {
-      config.ssl = {
-        // heroku uses self-signed certificates
-        rejectUnauthorized: false,
-      };
-    }
+    };
 
-    if (config.database) {
-      this.databaseName = config.database;
-    } else if (config.connectionString) {
-      try {
-        // Remove leading / from pathname.
-        this.databaseName = new URL(config.connectionString).pathname.replace(/^\//, '');
-      } catch (e) {
-        console.log(e);
-      }
-    }
-    // Configuration stats saved for
-    this.client = new Pool(config);
+    config.ssl = {
+      rejectUnauthorized: false,
+    };
+    process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
+
+    this.client= new Pool({
+      host: 'ec2-3-212-45-192.compute-1.amazonaws.com',
+      database: 'da4fq3gcar4d5c',
+      user: 'zxookeskvumunw',
+      password: '75647611b84aaf1762125c36b31a6024b57db416324179b4f8149d6d3427f086',
+      max: 20,
+      ssl: true,
+      idleTimeoutMillis: 30000,
+      connectionTimeoutMillis: 2000,
+    });
   }
 
   public async initialize(): Promise<void> {
     await this.client.query('CREATE TABLE IF NOT EXISTS games(game_id varchar, players integer, save_id integer, game text, status text default \'running\', created_time timestamp default now(), PRIMARY KEY (game_id, save_id))');
     await this.client.query('CREATE TABLE IF NOT EXISTS participants(game_id varchar, participants varchar[], PRIMARY KEY (game_id))');
-    await this.client.query('CREATE TABLE IF NOT EXISTS game_results(game_id varchar not null, seed_game_id varchar, players integer, generations integer, game_options text, scores text, PRIMARY KEY (game_id))');
+    await this.client.query('CREATE TABLE IF NOT EXISTS game_results(game_id varchar not null, seed_game_id varchar, players integer, generation integer, game_options text, corporation text, name text, TR integer, milestones integer, awards integer, greenery integer, city integer, escapeVelocity integer, moonHabitats integer, moonMines integer, moonRoads integer, planetaryTracks integer, cardVP integer, VP integer, PRIMARY KEY (game_id, corporation, generation))');
 
     await this.client.query('CREATE INDEX IF NOT EXISTS games_i1 on games(save_id)');
     await this.client.query('CREATE INDEX IF NOT EXISTS games_i2 on games(created_time)');
@@ -123,13 +120,17 @@ export class PostgreSQL implements IDatabase {
     return JSON.parse(res.rows[0].game);
   }
 
-  saveGameResults(game_id: GameId, players: number, generations: number, gameOptions: GameOptions, scores: Array<Score>): void {
-    this.client.query('INSERT INTO game_results (game_id, seed_game_id, players, generations, game_options, scores) VALUES($1, $2, $3, $4, $5, $6)', [game_id, gameOptions.clonedGamedId, players, generations, gameOptions, JSON.stringify(scores)], (err) => {
+  saveGameResults(game_id: GameId, players: number, generations: number, gameOptions: GameOptions, corporation: string, name: string, TR: number, milestones: number, awards: number, greenery: number, city: number, escapeVelocity: number, moonHabitats: number, moonMines: number, moonRoads: number, planetaryTracks: number, cardVP: number, VP: number): void {
+    this.client.query('INSERT INTO game_results (game_id, seed_game_id, players, generation, game_options, corporation, name, TR, milestones, awards, greenery, city, escapeVelocity, moonHabitats, moonMines, moonRoads, planetaryTracks, cardVP, VP) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)', [game_id, gameOptions.clonedGamedId, players, generations, gameOptions, corporation, name, TR, milestones, awards, greenery, city, escapeVelocity, moonHabitats, moonMines, moonRoads, planetaryTracks, cardVP, VP], (err) => {
       if (err) {
         console.error('PostgreSQL:saveGameResults', err);
         throw err;
       }
     });
+  }
+
+  getVPOverTme(game_id: GameId): void {
+    this.client.query('SELECT * FROM public.game_results where game_id = $1 ORDER BY generation asc'), [game_id];
   }
 
   async getMaxSaveId(game_id: GameId): Promise<number> {

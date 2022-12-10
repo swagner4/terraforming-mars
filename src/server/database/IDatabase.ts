@@ -1,4 +1,4 @@
-import {Game, Score} from '../Game';
+import {Game} from '../Game';
 import {GameOptions} from '../GameOptions';
 import {GameId, PlayerId, SpectatorId} from '../../common/Types';
 import {SerializedGame} from '../SerializedGame';
@@ -80,9 +80,8 @@ export interface IDatabase {
      *
      * @param generations the generation number at the end of the game
      * @param gameOptions the options used for this game.
-     * @param scores an array of scores correlated to the player's corporation.
      */
-    saveGameResults(game_id: GameId, players: number, generations: number, gameOptions: GameOptions, scores: Array<Score>): void;
+     saveGameResults(game_id: GameId, players: number, generations: number, gameOptions: GameOptions, corporation: string, name: string, TR: number, milestones: number, awards: number, greenery: number, city: number, escapeVelocity: number, moonHabitats: number, moonMines: number, moonRoads: number, planetaryTracks: number, cardVP: number, VP: number): void;
 
     /**
      * The meat behind player undo. Loads the game at the given save point,
