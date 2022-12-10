@@ -1,6 +1,12 @@
 <template>
     <div class="cards-filter">
         <h2 v-i18n>{{ listTitle }}</h2>
+        <div style="padding-bottom: 10px;">
+          <Button title="Copy list to clipboard" size="big" @click="copyToClipboard"/>
+        </div>
+        <div style="padding-bottom: 10px;">
+          <Button title="Paste list from clipboard" size="big" @click="pasteFromClipboard"/>
+        </div>
         <div class="cards-filter-results-cont" v-if="selectedCardNames.length">
             <div class="cards-filter-result" v-for="cardName in selectedCardNames" v-bind:key="cardName">
                 <label>{{ cardName }}<i class="create-game-expansion-icon expansion-icon-prelude" title="This card is prelude" v-if="isPrelude(cardName)"></i></label>
@@ -70,6 +76,20 @@ export default Vue.extend({
       this.selectedCardNames.push(cardNameToAdd);
       this.searchTerm = '';
     },
+    copyToClipboard() {
+      navigator.clipboard.writeText(this.selectedCardNames.toString());
+    },
+    pasteFromClipboard() {
+      navigator.clipboard.readText().then((s) => {
+        // const rev = Object.values<String>(CardName);
+        const cards = s.split(',');
+        for (const card of cards) {
+          // const cardN = rev.indexOf(card);
+          // this.addCard(Object.keys(CardName)[cardN] as CardName);
+          this.addCard(card as CardName);
+        }
+      });
+    },
   },
   watch: {
     selectedCardNames(value) {
@@ -91,7 +111,7 @@ export default Vue.extend({
       }
       const newCardNames = allItems.filter(
         (candidate: CardName) => ! this.selectedCardNames.includes(candidate) && candidate.toLowerCase().indexOf(value.toLowerCase()) !== -1 && !((this.listType === 'white') && this.isPrelude(candidate)),
-      );
+      ).sort();
       this.foundCardNames = newCardNames.slice(0, 5);
     },
   },
