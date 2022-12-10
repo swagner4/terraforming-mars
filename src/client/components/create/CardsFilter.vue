@@ -63,12 +63,11 @@ export default Vue.extend({
       return getCard(cardName)?.cardType === CardType.PRELUDE;
     },
     removeCard(cardNameToRemove: CardName) {
-      this.selectedCardNames = this.selectedCardNames.filter((curCardName) => curCardName !== cardNameToRemove).sort();
+      this.selectedCardNames = this.selectedCardNames.filter((curCardName) => curCardName !== cardNameToRemove);
     },
     addCard(cardNameToAdd: CardName) {
       if (this.selectedCardNames.includes(cardNameToAdd)) return;
       this.selectedCardNames.push(cardNameToAdd);
-      this.selectedCardNames.sort();
       this.searchTerm = '';
     },
   },
@@ -92,7 +91,7 @@ export default Vue.extend({
       }
       const newCardNames = allItems.filter(
         (candidate: CardName) => ! this.selectedCardNames.includes(candidate) && candidate.toLowerCase().indexOf(value.toLowerCase()) !== -1 && !((this.listType === 'white') && this.isPrelude(candidate)),
-      ).sort();
+      );
       this.foundCardNames = newCardNames.slice(0, 5);
     },
   },

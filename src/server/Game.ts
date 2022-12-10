@@ -204,9 +204,7 @@ export class Game implements Logger {
     corporationDeck.shuffle(gameOptions.customCorporationsList);
 
     const preludeDeck = new PreludeDeck(gameCards.getPreludeCards(), [], rng);
-    if (gameOptions.shuffleWhitelistCards) {
-      preludeDeck.shuffle(gameOptions.customPreludes);
-    }
+    preludeDeck.shuffle(gameOptions.customPreludes);
 
     const activePlayer = firstPlayer.id;
 
@@ -296,22 +294,25 @@ export class Game implements Logger {
         gameOptions.initialDraftVariant) {
         if (gameOptions.corporationsDraft === false) {
           for (let i = 0; i < gameOptions.startingCorporations; i++) {
-            player.dealtCorporationCards.push(corporationDeck.draw(game));
-          }
-        }
-        if (gameOptions.initialDraftVariant === false) {
-          for (let i = 0; i < 10; i++) {
-            player.dealtProjectCards.push(projectDeck.draw(game));
+            player.dealtCorporationCards.push(corporationDeck.draw(game, 'bottom'));
           }
         }
         if (gameOptions.preludeExtension) {
           for (let i = 0; i < constants.PRELUDE_CARDS_DEALT_PER_PLAYER; i++) {
-            const prelude = preludeDeck.draw(game);
+            const prelude = preludeDeck.draw(game, 'bottom');
             player.dealtPreludeCards.push(prelude);
           }
         }
       } else {
         game.playerHasPickedCorporationCard(player, new BeginnerCorporation());
+      }
+    }
+
+    if (gameOptions.initialDraftVariant === false) {
+      for (let i = 0; i < 10; i++) {
+        for (const player of game.getPlayersInGenerationOrder()) {
+          player.dealtProjectCards.push(projectDeck.draw(game));
+        }
       }
     }
 
